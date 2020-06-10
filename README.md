@@ -3,33 +3,35 @@ README
 Xinyu Hu
 6/9/2020
 
-## R Markdown
+# Before Everything
 
-This is one of the R Markdown documents. Markdown is a simple formatting
-syntax for authoring HTML, PDF, and MS Word documents. For more details
-on using R Markdown see <http://rmarkdown.rstudio.com>.
+This is a project that go through the pipeline from extracting data from
+public API, to processing in the RStudio, and to upload directly to the
+Github as README. Data was in JSON format when imported, which provides
+a great learning opportunity for JSON files; The output was directly
+push to the Github, which is also a great practice of what we learned in
+the class. It’s an interesting and steep learning curve, and I love it
+quite a
+bit.
 
-When you click the **Knit** button a document will be generated that
-includes both content as well as the output of any embedded R code
-chunks within the document. You can embed an R code chunk like this:
+# Describe JSON
 
-``` r
-summary(cars)
-```
+# Discuss JSON R-Packages
 
-    ##      speed           dist       
-    ##  Min.   : 4.0   Min.   :  2.00  
-    ##  1st Qu.:12.0   1st Qu.: 26.00  
-    ##  Median :15.0   Median : 36.00  
-    ##  Mean   :15.4   Mean   : 42.98  
-    ##  3rd Qu.:19.0   3rd Qu.: 56.00  
-    ##  Max.   :25.0   Max.   :120.00
+# Read-in JSON data
 
-## Including Plots
+# Exploratory Analysis
 
-You can also embed plots, for example:
+<!-- ```{r ,echo=True,warning=FALSE,message=FALSE} -->
 
-![](README_files/figure-gfm/pressure-1.png)<!-- -->
+<!-- ``` -->
 
-Note that the `echo = FALSE` parameter was added to the code chunk to
-prevent printing of the R code that generated the plot.
+<!-- ## Including Plots -->
+
+<!-- You can also embed plots, for example: -->
+
+<!-- ```{r pressure, echo=FALSE} -->
+
+<!-- ``` -->
+
+<!-- Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. -->
