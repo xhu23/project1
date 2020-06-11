@@ -68,16 +68,79 @@ is particularly powerful for building pipelines and interacting with a
 web API.
 
 For this project, I choose `jsonlite` as it is the most familiar JSON
-package to me. Also, its fast speed is
-appealing.
+package to me. Also, its fast speed is appealing.
 
 # Read-in JSON data
 
+This is my step by step process to load in data from [NHL Franchise
+API](https://gitlab.com/dword4/nhlapi/-/blob/master/records-api.md).  
+Step1: Load library
+
+``` r
+library("httr")
+library("jsonlite")
+```
+
+Step2: Prepare Parent URL
+
+``` r
+full_url <- "https://records.nhl.com/site/api"
+```
+
+Step3: Obtain Franchise data
+
+``` r
+franchise <- fromJSON(paste(full_url,"/franchise",sep=""))
+franchise <- franchise[[1]]
+```
+
+Step4: Obtain Franchise team
+totals
+
+``` r
+franchise_team_totals <- fromJSON(paste(full_url,"/franchise-team-totals",sep=""))
+franchise_team_totals <- franchise_team_totals[[1]]
+```
+
+Step5: Get the season record, goalie record and skater record for
+Franchise 1. Using this step, we can obtain the data columns from those
+3 tables provided by the
+API.
+
+``` r
+season_records_all <- fromJSON(paste(full_url,"/franchise-season-records?cayenneExp=franchiseId=1",sep=""))
+season_records_all <- season_records_all[[1]]
+
+goalie_records_all <- fromJSON(paste(full_url,"/franchise-goalie-records?cayenneExp=franchiseId=1",sep=""))
+goalie_records_all <- goalie_records_all[[1]]
+
+skater_records_all <- fromJSON(paste(full_url,"/franchise-skater-records?cayenneExp=franchiseId=1",sep=""))
+skater_records_all <- skater_records_all[[1]]
+```
+
+Step6: loop through all the franchise (2 to 38), to obtain the season
+record, goalie record and skater record.
+
+``` r
+for (i in 2:38){
+  # extract data from api
+  season_records <- fromJSON(paste(full_url,"/franchise-season-records?cayenneExp=franchiseId=",i,sep=""))
+  season_records <- season_records[[1]]
+  
+  goalie_records <- fromJSON(paste(full_url,"/franchise-goalie-records?cayenneExp=franchiseId=",i,sep=""))
+  goalie_records <- goalie_records[[1]]
+  
+  skater_records <- fromJSON(paste(full_url,"/franchise-skater-records?cayenneExp=franchiseId=",i,sep=""))
+  skater_records <- skater_records[[1]]
+  # append to the giant table
+  season_records_all <-rbind(season_records_all,season_records)
+  goalie_records_all <-rbind(goalie_records_all,goalie_records)
+  skater_records_all <-rbind(skater_records_all,skater_records)
+  # remove temporary table after appending
+  rm(season_records,goalie_records,skater_records) 
+}
 # Exploratory Analysis
-
-<!-- ```{r ,echo=True,warning=FALSE,message=FALSE} -->
-
-<!-- ``` -->
+```
 
 <!-- ## Including Plots -->
 
