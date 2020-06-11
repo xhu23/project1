@@ -1,7 +1,7 @@
-README
+ST558 Project1
 ================
 Xinyu Hu
-6/9/2020
+6/10/2020
 
 # Before Everything
 
@@ -132,22 +132,78 @@ for (i in 2:38){
   
   skater_records <- fromJSON(paste(full_url,"/franchise-skater-records?cayenneExp=franchiseId=",i,sep=""))
   skater_records <- skater_records[[1]]
+  
   # append to the giant table
   season_records_all <-rbind(season_records_all,season_records)
   goalie_records_all <-rbind(goalie_records_all,goalie_records)
   skater_records_all <-rbind(skater_records_all,skater_records)
+  
   # remove temporary table after appending
   rm(season_records,goalie_records,skater_records) 
 }
-# Exploratory Analysis
 ```
 
-<!-- ## Including Plots -->
+Step7: Check the data we read (first 5 columns, first 5 rows).
 
-<!-- You can also embed plots, for example: -->
+``` r
+head(franchise[,1:5],n=5)
+```
 
-<!-- ```{r pressure, echo=FALSE} -->
+    ##   id firstSeasonId lastSeasonId mostRecentTeamId teamCommonName
+    ## 1  1      19171918           NA                8      Canadiens
+    ## 2  2      19171918     19171918               41      Wanderers
+    ## 3  3      19171918     19341935               45         Eagles
+    ## 4  4      19191920     19241925               37         Tigers
+    ## 5  5      19171918           NA               10    Maple Leafs
 
-<!-- ``` -->
+``` r
+head(franchise_team_totals[,1:5],n=5)
+```
 
-<!-- Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. -->
+    ##   id activeFranchise firstSeasonId franchiseId gameTypeId
+    ## 1  1               1      19821983          23          2
+    ## 2  2               1      19821983          23          3
+    ## 3  3               1      19721973          22          2
+    ## 4  4               1      19721973          22          3
+    ## 5  5               1      19261927          10          2
+
+``` r
+head(season_records_all[,1:5],n=5)
+```
+
+    ##   id fewestGoals fewestGoalsAgainst fewestGoalsAgainstSeasons
+    ## 1  8         155                131              1955-56 (70)
+    ## 2 41          NA                 NA                      <NA>
+    ## 3 36          NA                 NA                      <NA>
+    ## 4 37          NA                 NA                      <NA>
+    ## 5 10         147                131              1953-54 (70)
+    ##   fewestGoalsSeasons
+    ## 1       1952-53 (70)
+    ## 2               <NA>
+    ## 3               <NA>
+    ## 4               <NA>
+    ## 5       1954-55 (70)
+
+``` r
+head(goalie_records_all[,1:5],n=5)
+```
+
+    ##    id activePlayer firstName franchiseId      franchiseName
+    ## 1 261        FALSE   Patrick           1 Montréal Canadiens
+    ## 2 294         TRUE     Carey           1 Montréal Canadiens
+    ## 3 296        FALSE   Jacques           1 Montréal Canadiens
+    ## 4 327        FALSE    George           1 Montréal Canadiens
+    ## 5 414        FALSE  Stephane           1 Montréal Canadiens
+
+``` r
+head(skater_records_all[,1:5],n=5)
+```
+
+    ##      id activePlayer assists firstName franchiseId
+    ## 1 16891        FALSE     712      Jean           1
+    ## 2 16911        FALSE     688     Henri           1
+    ## 3 16990        FALSE     422   Maurice           1
+    ## 4 17000        FALSE     728       Guy           1
+    ## 5 17025        FALSE      87     Chris           1
+
+# Exploratory Analysis
