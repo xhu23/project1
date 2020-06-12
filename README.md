@@ -1,7 +1,7 @@
 ST558 Project1
 ================
 Xinyu Hu
-6/10/2020
+6/12/2020
 
 # Before Everything
 
@@ -207,3 +207,302 @@ head(skater_records_all[,1:5],n=5)
     ## 5 17025        FALSE      87     Chris           1
 
 # Exploratory Analysis
+
+## Load Packages
+
+Lots of packages are used in the analysis section. `ggplot2` is a
+package with a spectrume of data visualization charts. It is very
+versatile and helpful. `dplyr`, `tidyr` and `tidyverse` are packages
+super helpful for data manipulation. And `DT` are used to create
+user-friendly data table in the output.
+
+## Franchise Table Analysis
+
+There is not so much information provided by the francise table. A very
+interesting point is to look at when is the first season for each
+franchise. In order to do so, I used `substr` function to get the first
+4 digits, which is the year of first half. Then we plot the first year
+in a
+histogram.
+
+``` r
+franchise$firstSeasonId_New <- as.numeric(substr(franchise$firstSeasonId,1,4))
+
+FirstSeason_plot<-ggplot(data=franchise,aes(x=firstSeasonId_New))
+FirstSeason_plot + geom_histogram(binwidth = 10, color="black", fill="blue", size=2)+
+  labs(x = "Year of First Season")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-9-1.png)<!-- --> I found that
+there are 2 time in the history that lots of franchises are created. One
+is between 1915 and 1925, during which 9 franchises were createed;
+Another time is between 1965 and 1975, totally 12 franchises were
+created then. After 1975, there remains a stream of Franchise creation,
+but not as many as those 2 peak time.
+
+## Franchise Team Totals Analysis
+
+This table offer a wide varitey of record about each franchise, by game
+type. In order to understand the winning rate for home and road games,
+several new variables are created. To be exact, Game Count and Win Rate
+are created at Overall, Home and Road
+levels.
+
+``` r
+franchise_team_totals['Overall_Game_Count'] <- rowSums(franchise_team_totals[,c("wins","losses","ties")],na.rm = T)
+franchise_team_totals['Overall_Win_Rate'] <- round(franchise_team_totals$wins/franchise_team_totals$Overall_Game_Count,2)
+franchise_team_totals['Home_Game_Count'] <- rowSums(franchise_team_totals[,c("homeWins","homeLosses","homeTies")],na.rm = T)
+franchise_team_totals['Home_Win_Rate'] <- round(franchise_team_totals$homeWins/franchise_team_totals$Home_Game_Count,2)
+franchise_team_totals['Road_Game_Count'] <- rowSums(franchise_team_totals[,c("roadWins","roadLosses","roadTies")],na.rm = T)
+franchise_team_totals['Road_Win_Rate'] <- round(franchise_team_totals$roadWins/franchise_team_totals$Road_Game_Count,2)
+```
+
+With all those variables created, I create a table with only interesting
+metrics and sort them by franchise ID and game type
+ID.
+
+``` r
+franchise_team_SimpTotals <- franchise_team_totals %>% select(franchiseId,gameTypeId,Overall_Game_Count,Overall_Win_Rate,
+                                                              Home_Game_Count,Home_Win_Rate,Road_Game_Count,Road_Win_Rate)%>% 
+                                                    arrange(franchiseId,gameTypeId)
+```
+
+Using the `datatable` function from `DT` package, I make a user-friendly
+datatable.
+
+``` r
+datatable(franchise_team_SimpTotals,rownames = FALSE)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+This is a table that capture win rate for different senarios. Though not
+so much insight could be derived from this table, it serves as good
+source of data for further interests.
+
+## Season Record Analysis
+
+Season record table provide lots of info related to seasonal performance
+of each franchise. The first step I would take is, to get some basic
+summary about win and loss streaks at home and at road. (I exclude
+*Montreal Wanderers* as its data contains numerous
+missing)
+
+``` r
+subtable<-round(apply(season_records_all[season_records_all$franchiseName!="Montreal Wanderers",c("homeWinStreak","homeLossStreak","roadWinStreak","roadLossStreak")],MARGIN=2,summary),2)
+kable(subtable[ ,1:4])  
+```
+
+|         | homeWinStreak | homeLossStreak | roadWinStreak | roadLossStreak |
+| ------- | ------------: | -------------: | ------------: | -------------: |
+| Min.    |             5 |           5.00 |          3.00 |           4.00 |
+| 1st Qu. |             9 |           6.00 |          6.00 |           8.00 |
+| Median  |            11 |           7.00 |          8.00 |          11.00 |
+| Mean    |            11 |           7.59 |          7.43 |          12.76 |
+| 3rd Qu. |            13 |           9.00 |          9.00 |          14.00 |
+| Max.    |            23 |          14.00 |         12.00 |          38.00 |
+
+Here I find that the average home loss streak (7.59) and road win streak
+(7.43) is very close. This makes sense because One franchise’s home loss
+will be the counterpart’s raod win. The similarity also exist when
+compare average home win streak and road loss streak.
+
+One step further, I am curious teams whose road loss streak less than 12
+will have different home win streak distribution. So first, I created a
+character variable named `roadLossStreak_Category`, assigning values
+depending one if the road loss streak is less than 12. Then create a
+side-by-side histogram to compare the home win
+streak.
+
+``` r
+season_records_all["roadLossStreak_Category"] <- ifelse(season_records_all$roadLossStreak <12, "Less than 12","No Less than 12")
+
+WinLossStreak_plot<-ggplot(data=season_records_all,aes(x=homeWinStreak))
+WinLossStreak_plot + geom_histogram(binwidth = 1,color="black", fill="blue", size=2)+
+                     labs(x = "Home Win Streak")+
+  facet_grid(cols=vars(roadLossStreak_Category))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+With limited number of franchise, both distributions look robust. But
+based on this table, I think the home win streak of franchiases with
+Less than 12 road loss streak (left histogram) are centering aroud 9,
+while the “No Less than 12” group (right histogram) are centered at 11.
+Also, the left histogram looks more bell-shaped, while the right one’s
+peak are right at 5 and skewed to the right.
+
+## Goalie Analysis
+
+Goalie table from the API returns information about each goalie. It
+includes both active and non-active goalies. Basically, I am interested
+in how many active and non active player each franchise has. So I
+created a contingency table using the code below.*(firstly, I reassign
+value of activePlayer variable to be more reader
+friendly)*
+
+``` r
+goalie_records_all$activePlayer <- ifelse(goalie_records_all$activePlayer=="TRUE",'Active Goalie','Non-Active Goalie')
+goalie_records_all%>%
+  group_by(franchiseId, activePlayer)%>%
+  summarise(n=n())%>%
+  spread(activePlayer, n)%>%
+  kable()
+```
+
+| franchiseId | Active Goalie | Non-Active Goalie |
+| ----------: | ------------: | ----------------: |
+|           1 |             2 |                35 |
+|           2 |            NA |                 1 |
+|           3 |            NA |                 4 |
+|           4 |            NA |                 3 |
+|           5 |             7 |                46 |
+|           6 |             2 |                49 |
+|           7 |            NA |                 6 |
+|           8 |            NA |                11 |
+|           9 |            NA |                 4 |
+|          10 |             3 |                39 |
+|          11 |             5 |                43 |
+|          12 |             3 |                45 |
+|          13 |            NA |                 5 |
+|          14 |             4 |                39 |
+|          15 |             3 |                34 |
+|          16 |             4 |                30 |
+|          17 |             5 |                32 |
+|          18 |             6 |                36 |
+|          19 |             4 |                27 |
+|          20 |             5 |                34 |
+|          21 |             3 |                32 |
+|          22 |             4 |                26 |
+|          23 |             3 |                24 |
+|          24 |             3 |                27 |
+|          25 |             4 |                39 |
+|          26 |             6 |                32 |
+|          27 |             8 |                26 |
+|          28 |             8 |                37 |
+|          29 |             3 |                16 |
+|          30 |             6 |                21 |
+|          31 |             4 |                29 |
+|          32 |             7 |                19 |
+|          33 |             4 |                25 |
+|          34 |             3 |                 7 |
+|          35 |             3 |                14 |
+|          36 |             2 |                14 |
+|          37 |             3 |                11 |
+|          38 |             7 |                NA |
+
+I am very interested to learn goalie’s most win by franchise and active
+status. So I created a side-by-side box plot as
+below.
+
+``` r
+goalie_records_all$franchiseId <- as.factor(goalie_records_all$franchiseId)
+goalie_records_plot<-ggplot(goalie_records_all,aes(x=franchiseId,y=mostWinsOneSeason))
+goalie_records_plot + geom_boxplot()+
+  facet_grid(rows =vars(goalie_records_all$activePlayer))+
+  labs(title="Box-Plot: Seasonal Most Win By Goalie Type")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+
+Comparing active goalie vs non-active goalie, there isn’t so much
+insight to obtain visually from this plot. The only trend I can observe
+is, the active goalie are higher in *most win one season* in terms of
+averages than non-active goalie in most teams. When we focus on
+franchise vs franchise, I do see a difference in distribution of *most
+win one season*. While most are right tailed, some franchise have
+average *most win one season* being around 5 (franchise 25 for example),
+and others being around 15 (franchise 12 for example).
+
+# Skater Record Analysis
+
+Skater Record table is a table that provides abundant info about
+skaters. Just like Goalie, I’m interested in how many active and
+non-active each of the franchise has right now. So I create a contigency
+table to do the count. *(firstly, I reassign value of activePlayer
+variable to be more reader
+friendly)*
+
+``` r
+skater_records_all$activePlayer <- ifelse(skater_records_all$activePlayer=="TRUE",'Active Skater','Non-Active Skater')
+skater_records_all$activePlayer <- as.factor(skater_records_all$activePlayer)
+skater_records_all$mostPointsOneGame <- as.numeric(skater_records_all$mostPointsOneGame)
+skater_records_all%>%group_by(franchiseName, activePlayer)%>%
+                    summarise(n=n())%>%
+          spread(activePlayer, n)%>%
+                    kable()
+```
+
+| franchiseName         | Active Skater | Non-Active Skater |
+| :-------------------- | ------------: | ----------------: |
+| Anaheim Ducks         |            74 |               294 |
+| Arizona Coyotes       |            58 |               476 |
+| Boston Bruins         |            74 |               836 |
+| Brooklyn Americans    |            NA |               141 |
+| Buffalo Sabres        |            73 |               387 |
+| Calgary Flames        |            57 |               497 |
+| Carolina Hurricanes   |            60 |               418 |
+| Chicago Blackhawks    |            69 |               795 |
+| Cleveland Barons      |            NA |               140 |
+| Colorado Avalanche    |            63 |               430 |
+| Columbus Blue Jackets |            70 |               194 |
+| Dallas Stars          |            62 |               553 |
+| Detroit Red Wings     |            57 |               796 |
+| Edmonton Oilers       |            65 |               444 |
+| Florida Panthers      |            59 |               303 |
+| Hamilton Tigers       |            NA |                36 |
+| Los Angeles Kings     |            61 |               535 |
+| Minnesota Wild        |            56 |               188 |
+| Montréal Canadiens    |            64 |               724 |
+| Montreal Maroons      |            NA |                78 |
+| Montreal Wanderers    |            NA |                11 |
+| Nashville Predators   |            59 |               211 |
+| New Jersey Devils     |            63 |               456 |
+| New York Islanders    |            54 |               455 |
+| New York Rangers      |            64 |               919 |
+| Ottawa Senators       |            74 |               272 |
+| Philadelphia Flyers   |            58 |               517 |
+| Philadelphia Quakers  |            NA |                38 |
+| Pittsburgh Penguins   |            77 |               582 |
+| San Jose Sharks       |            53 |               267 |
+| St. Louis Blues       |            55 |               551 |
+| St. Louis Eagles      |            NA |                90 |
+| Tampa Bay Lightning   |            51 |               315 |
+| Toronto Maple Leafs   |            69 |               832 |
+| Vancouver Canucks     |            61 |               500 |
+| Vegas Golden Knights  |            43 |                 4 |
+| Washington Capitals   |            52 |               457 |
+| Winnipeg Jets         |            59 |               215 |
+
+Lastly, I am interesed in the relationship between Most Assists One
+Season and Most Goal One Season for each of the skater. Especially, I
+want to know how *most point one game* can influence on the
+relationship. So I make a scatter plot, with color to indicate *most
+point one game*. The color theme comes from `wesanderson` package.
+
+``` r
+library(wesanderson)
+skater_records_plot<- ggplot(skater_records_all,aes(x=mostAssistsOneSeason, y=mostGoalsOneSeason, color=mostPointsOneGame)) 
+skater_records_plot + geom_point()+scale_color_gradientn(colours = rainbow(8))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+
+There are so many observation can be made by this plot. First, we do see
+that as *most points one game* increase from orange to purple, the data
+points are moving from the bottom left to the top right. This suggests a
+positive correlation among *most points one game*, *most goal one
+season* and *most assist one season*. This finding verifies that the
+best skater can be doing well in all aspects. Second finding is, as
+*most points one game* increases, the data points are scatter in a wider
+zone. For example, for those orange dots, it all nested ina 5 by 5 zone,
+while for green dots, the zone is from 5 to 50 horizontally, and 5 to 45
+vertically. Thirdly, the slop looks very different as *most points one
+game* increases. The slope of purple dots are more flat, while the slope
+for green dots are more steep.
+
+# In the End
+
+If you have any comments, questions or suggestions, please email me at
+<xhu23@ncsu.edu>. I’m sure there are so many interesting stories that I
+havn;t touched yet\!
