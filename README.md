@@ -11,7 +11,7 @@ Github as README. Data was in JSON format when imported, which provides
 a great learning opportunity for JSON files; The output was directly
 push to the Github, which is also a great practice of what we learned in
 the class. It’s an interesting and steep learning curve, and I love it
-quite a bit.
+quite a bit.hh
 
 # Describe JSON
 
