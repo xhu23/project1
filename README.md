@@ -11,7 +11,7 @@ Github as README. Data was in JSON format when imported, which provides
 a great learning opportunity for JSON files; The output was directly
 push to the Github, which is also a great practice of what we learned in
 the class. It’s an interesting and steep learning curve, and I love it
-quite a bit.hh
+quite a bit.
 
 # Describe JSON
 
@@ -240,6 +240,19 @@ Another time is between 1965 and 1975, totally 12 franchises were
 created then. After 1975, there remains a stream of Franchise creation,
 but not as many as those 2 peak time.
 
+Now I will create a table to identify franchise created before 1950,
+1950 to 1980 and after 1980. Those 3 categories will be assigned as
+**Long Existing Franchise**,**Mid Existing Franchise**, and **Short
+Existing Franchise** This table will be used later.
+
+``` r
+FranchiseTenure <- franchise %>% select(id,firstSeasonId_New)
+FranchiseTenure["FranchiseTenure"] <- ifelse(FranchiseTenure$firstSeasonId_New <= 1950, "Long Existing Franchise",
+                             ifelse(FranchiseTenure$firstSeasonId_New <= 1980, "Mid Existing Franchise",
+                             ifelse(FranchiseTenure$firstSeasonId_New > 1980, "Short Existing Franchise",
+                                    "Missing Tenure")))
+```
+
 ## Franchise Team Totals Analysis
 
 This table offer a wide varitey of record about each franchise, by game
@@ -274,7 +287,7 @@ datatable.
 datatable(franchise_team_SimpTotals,rownames = FALSE)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
 This is a table that capture win rate for different senarios. Though not
 so much insight could be derived from this table, it serves as good
@@ -323,7 +336,7 @@ WinLossStreak_plot + geom_histogram(binwidth = 1,color="black", fill="blue", siz
   facet_grid(cols=vars(roadLossStreak_Category))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
 With limited number of franchise, both distributions look robust. But
 based on this table, I think the home win streak of franchiases with
@@ -336,60 +349,26 @@ peak are right at 5 and skewed to the right.
 
 Goalie table from the API returns information about each goalie. It
 includes both active and non-active goalies. Basically, I am interested
-in how many active and non active player each franchise has. So I
+in how many active and non active player by franchise tenure. So I
 created a contingency table using the code below.*(firstly, I reassign
 value of activePlayer variable to be more reader
 friendly)*
 
 ``` r
+goalie_records_all <- left_join(goalie_records_all,FranchiseTenure,by = c("franchiseId" = "id"))
 goalie_records_all$activePlayer <- ifelse(goalie_records_all$activePlayer=="TRUE",'Active Goalie','Non-Active Goalie')
 goalie_records_all%>%
-  group_by(franchiseId, activePlayer)%>%
+  group_by(FranchiseTenure, activePlayer)%>%
   summarise(n=n())%>%
   spread(activePlayer, n)%>%
   kable()
 ```
 
-| franchiseId | Active Goalie | Non-Active Goalie |
-| ----------: | ------------: | ----------------: |
-|           1 |             2 |                35 |
-|           2 |            NA |                 1 |
-|           3 |            NA |                 4 |
-|           4 |            NA |                 3 |
-|           5 |             7 |                46 |
-|           6 |             2 |                49 |
-|           7 |            NA |                 6 |
-|           8 |            NA |                11 |
-|           9 |            NA |                 4 |
-|          10 |             3 |                39 |
-|          11 |             5 |                43 |
-|          12 |             3 |                45 |
-|          13 |            NA |                 5 |
-|          14 |             4 |                39 |
-|          15 |             3 |                34 |
-|          16 |             4 |                30 |
-|          17 |             5 |                32 |
-|          18 |             6 |                36 |
-|          19 |             4 |                27 |
-|          20 |             5 |                34 |
-|          21 |             3 |                32 |
-|          22 |             4 |                26 |
-|          23 |             3 |                24 |
-|          24 |             3 |                27 |
-|          25 |             4 |                39 |
-|          26 |             6 |                32 |
-|          27 |             8 |                26 |
-|          28 |             8 |                37 |
-|          29 |             3 |                16 |
-|          30 |             6 |                21 |
-|          31 |             4 |                29 |
-|          32 |             7 |                19 |
-|          33 |             4 |                25 |
-|          34 |             3 |                 7 |
-|          35 |             3 |                14 |
-|          36 |             2 |                14 |
-|          37 |             3 |                11 |
-|          38 |             7 |                NA |
+| FranchiseTenure          | Active Goalie | Non-Active Goalie |
+| :----------------------- | ------------: | ----------------: |
+| Long Existing Franchise  |            22 |               286 |
+| Mid Existing Franchise   |            70 |               480 |
+| Short Existing Franchise |            42 |               156 |
 
 I am very interested to learn goalie’s most win by franchise and active
 status. So I created a side-by-side box plot as
@@ -403,7 +382,7 @@ goalie_records_plot + geom_boxplot()+
   labs(title="Box-Plot: Seasonal Most Win By Goalie Type")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 Comparing active goalie vs non-active goalie, there isn’t so much
 insight to obtain visually from this plot. The only trend I can observe
@@ -424,55 +403,22 @@ variable to be more reader
 friendly)*
 
 ``` r
+skater_records_all <- left_join(skater_records_all,FranchiseTenure,by = c("franchiseId" = "id"))
+
 skater_records_all$activePlayer <- ifelse(skater_records_all$activePlayer=="TRUE",'Active Skater','Non-Active Skater')
 skater_records_all$activePlayer <- as.factor(skater_records_all$activePlayer)
 skater_records_all$mostPointsOneGame <- as.numeric(skater_records_all$mostPointsOneGame)
-skater_records_all%>%group_by(franchiseName, activePlayer)%>%
+skater_records_all%>%group_by(FranchiseTenure, activePlayer)%>%
                     summarise(n=n())%>%
           spread(activePlayer, n)%>%
                     kable()
 ```
 
-| franchiseName         | Active Skater | Non-Active Skater |
-| :-------------------- | ------------: | ----------------: |
-| Anaheim Ducks         |            74 |               294 |
-| Arizona Coyotes       |            58 |               476 |
-| Boston Bruins         |            74 |               836 |
-| Brooklyn Americans    |            NA |               141 |
-| Buffalo Sabres        |            73 |               387 |
-| Calgary Flames        |            57 |               497 |
-| Carolina Hurricanes   |            60 |               418 |
-| Chicago Blackhawks    |            69 |               795 |
-| Cleveland Barons      |            NA |               140 |
-| Colorado Avalanche    |            63 |               430 |
-| Columbus Blue Jackets |            70 |               194 |
-| Dallas Stars          |            62 |               553 |
-| Detroit Red Wings     |            57 |               796 |
-| Edmonton Oilers       |            65 |               444 |
-| Florida Panthers      |            59 |               303 |
-| Hamilton Tigers       |            NA |                36 |
-| Los Angeles Kings     |            61 |               535 |
-| Minnesota Wild        |            56 |               188 |
-| Montréal Canadiens    |            64 |               724 |
-| Montreal Maroons      |            NA |                78 |
-| Montreal Wanderers    |            NA |                11 |
-| Nashville Predators   |            59 |               211 |
-| New Jersey Devils     |            63 |               456 |
-| New York Islanders    |            54 |               455 |
-| New York Rangers      |            64 |               919 |
-| Ottawa Senators       |            74 |               272 |
-| Philadelphia Flyers   |            58 |               517 |
-| Philadelphia Quakers  |            NA |                38 |
-| Pittsburgh Penguins   |            77 |               582 |
-| San Jose Sharks       |            53 |               267 |
-| St. Louis Blues       |            55 |               551 |
-| St. Louis Eagles      |            NA |                90 |
-| Tampa Bay Lightning   |            51 |               315 |
-| Toronto Maple Leafs   |            69 |               832 |
-| Vancouver Canucks     |            61 |               500 |
-| Vegas Golden Knights  |            43 |                 4 |
-| Washington Capitals   |            52 |               457 |
-| Winnipeg Jets         |            59 |               215 |
+| FranchiseTenure          | Active Skater | Non-Active Skater |
+| :----------------------- | ------------: | ----------------: |
+| Long Existing Franchise  |           397 |              5296 |
+| Mid Existing Franchise   |           919 |              7398 |
+| Short Existing Franchise |           598 |              2263 |
 
 Lastly, I am interesed in the relationship between Most Assists One
 Season and Most Goal One Season for each of the skater. Especially, I
@@ -486,7 +432,7 @@ skater_records_plot<- ggplot(skater_records_all,aes(x=mostAssistsOneSeason, y=mo
 skater_records_plot + geom_point()+scale_color_gradientn(colours = rainbow(8))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
 
 There are so many observation can be made by this plot. First, we do see
 that as *most points one game* increase from orange to purple, the data
